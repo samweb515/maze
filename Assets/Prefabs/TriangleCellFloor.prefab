@@ -49,6 +49,8 @@ MonoBehaviour:
   sizeX: 0
   sizeZ: 0
   cellPrefab: {fileID: -6095059717913220710, guid: a08a6741b91ca81449519007f112c1a0, type: 3}
+  SquareWall: {fileID: 2358486439682399447, guid: caa204cc3a173ef4492fcef2090946d2, type: 3}
+  room: {fileID: 1456188367166806230, guid: 31d3bac8e5883844ab46c5c85dcee862, type: 3}
   generationStepDelay: 0
 --- !u!114 &5142439793959418216
 MonoBehaviour:
@@ -62,6 +64,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42ae4a669cde5cd439538610ca5d005a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  history: []
+  neighbors: []
+  reserved: 0
 --- !u!1001 &2000157487818300279
 PrefabInstance:
   m_ObjectHideFlags: 0

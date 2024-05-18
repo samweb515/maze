@@ -7,6 +7,8 @@ using System.Collections.Generic;
 public class Maze : MonoBehaviour {
 	public int sizeX,sizeZ;
 	public CellCluster cellPrefab;
+	public SquareWalls SquareWall;
+	public Room1 room;
 	private CellCluster[,] cellclusters;
 	
 	public float generationStepDelay;
@@ -16,9 +18,12 @@ public class Maze : MonoBehaviour {
 		float wallname;
 		int neighbortri;
 		float triname;
-		sizeX = 16;
-		sizeZ = 16;
+		sizeX = 15;
+		sizeZ = 15;
 		cellclusters = new CellCluster[sizeX, sizeZ];
+		
+		
+		// generate cells
 		for (int x = 0; x < sizeX; x++) {
 			for (int z = 0; z < sizeZ; z++) {
 				CreateCell(x, z);
@@ -70,29 +75,61 @@ public class Maze : MonoBehaviour {
 				}
 			}
 		}
+		
+		for(int i = 0; i < sizeX; i++){
+			SquareWalls wall = Instantiate(SquareWall) as SquareWalls;
+			wall.x = sizeX;
+			wall.z = i;
+			wall.transform.localPosition = new Vector3(wall.x - sizeX * 0.5f + 0.5f, 0f, wall.z - sizeZ * 0.5f + 0.5f);
+			Destroy(wall.transform.Find("3").gameObject);
+		}
+		for(int i = 0; i < sizeZ; i++){
+			SquareWalls wall = Instantiate(SquareWall) as SquareWalls;
+			wall.x = i;
+			wall.z = sizeZ;
+			wall.transform.localPosition = new Vector3(wall.x - sizeX * 0.5f + 0.5f, 0f, wall.z - sizeZ * 0.5f + 0.5f);
+			Destroy(wall.transform.Find("12").gameObject);
+		}
+		
+		// carve maze
 		Stack<TriangleCellFloor> work = new Stack<TriangleCellFloor> ();
 		List<TriangleCellFloor> visited = new List<TriangleCellFloor> ();
+		List<TriangleCellFloor> reserved = new List<TriangleCellFloor> ();
 
 		TriangleCellFloor start = cellclusters[0, 0].transform.Find("2").GetComponent<TriangleCellFloor>();
-		//TriangleCellFloor end = cellclusters[1, 1].transform.Find("2").GetComponent<TriangleCellFloor>();
+		TriangleCellFloor end = cellclusters[sizeX - 1, sizeZ - 1].transform.Find("1").GetComponent<TriangleCellFloor>();
 
 		work.Push (start);
-		Debug.Log(work);
 		visited.Add (start);
+		
+		// reserve cells
+		//for (int i = 0; i < sizeX - 1; i++)
+        //{
+			for (int j = 0; j < 4; j++)
+			{
+				reserved.Add (cellclusters[0, 7].transform.Find("" + Mathf.Pow(2, j)).GetComponent<TriangleCellFloor>());
+				reserved.Add (cellclusters[1, 7].transform.Find("" + Mathf.Pow(2, j)).GetComponent<TriangleCellFloor>());
+				reserved.Add (cellclusters[0, 8].transform.Find("" + Mathf.Pow(2, j)).GetComponent<TriangleCellFloor>());
+				reserved.Add (cellclusters[1, 8].transform.Find("" + Mathf.Pow(2, j)).GetComponent<TriangleCellFloor>());
+			}
+        //}
 
-		while(work.Count > 0){
-
+		//generate maze
+		while(work.Count > 0)
+		{
 			TriangleCellFloor current = work.Pop ();
-			if (false) { //(current == end) {
-				//List<TriangleCellFloor> result = current.history;
-				//result.Add (current);
-				//Debug.Log(result);
+			if (current == end) {
+				List<TriangleCellFloor> result = current.history;
+				// path from start to end node
+				foreach(var res in result)
+				{
+    				Debug.Log(res.transform.parent.GetComponent<CellCluster>().x + ", " + res.transform.parent.GetComponent<CellCluster>().z + " " + res);
+				}
 			} else {
-				for(int i = 0; i < current.neighbors.Count; i++){
-
+				for(int i = 0; i < current.neighbors.Count; i++)
+				{
 					TriangleCellFloor currentChild = current.neighbors [i];
-					if(!visited.Contains(currentChild)){
-
+					if(!visited.Contains(currentChild) && !reserved.Contains(currentChild)) {
 						work.Push (currentChild);
 						visited.Add (currentChild);
 						currentChild.history.AddRange (current.history);
@@ -109,23 +146,32 @@ public class Maze : MonoBehaviour {
 				{
 					triname = Mathf.Pow(2, tri);
 					TriangleCellFloor neighbor1 = cellclusters[x, z].transform.Find("" + triname).GetComponent<TriangleCellFloor>();
-					if (neighbor1 != start) {
+					if (neighbor1 != start && !reserved.Contains(neighbor1))
+					{
 						TriangleCellFloor neighbor2 = cellclusters[x, z].transform.Find("" + triname).GetComponent<TriangleCellFloor>().history.Last();
 						wallname = float.Parse(neighbor1.name) + float.Parse(neighbor2.name);
-						if (neighbor2.transform.parent.GetComponent<CellCluster>().x == x && neighbor2.transform.parent.GetComponent<CellCluster>().z == z) {
-							//Debug.Log("Destroying"+ " at " + neighbor2.transform.parent.GetComponent<CellCluster>().x + ", " + neighbor2.transform.parent.GetComponent<CellCluster>().z);
+						if (neighbor2.transform.parent.GetComponent<CellCluster>().x == x && neighbor2.transform.parent.GetComponent<CellCluster>().z == z) { //clean up later
 							Destroy(cellclusters[x, z].transform.Find("" + wallname).gameObject);
 						} else if (Mathf.Log(float.Parse(neighbor1.name), 2) % 2 != 0) {
-							Debug.Log("n1: " + cellclusters[x, z].transform.Find("" + triname).GetComponent<TriangleCellFloor>().name + " at " + x + ", " + z);
-							Debug.Log("n2: " + cellclusters[x, z].transform.Find("" + triname).GetComponent<TriangleCellFloor>().history.Last().name + " at " + neighbor2.transform.parent.GetComponent<CellCluster>().x + ", " + neighbor2.transform.parent.GetComponent<CellCluster>().z);
-							Debug.Log("wallname: " + wallname);
 							Destroy(cellclusters[x, z].transform.Find("" + wallname).gameObject);
 						} else {
-							Debug.Log("n1: " + cellclusters[x, z].transform.Find("" + triname).GetComponent<TriangleCellFloor>().name);
-							Debug.Log("n2: " + cellclusters[x, z].transform.Find("" + triname).GetComponent<TriangleCellFloor>().history.Last().name);
-							Debug.Log("wallname: " + wallname);
 							Destroy(cellclusters[neighbor2.transform.parent.GetComponent<CellCluster>().x, neighbor2.transform.parent.GetComponent<CellCluster>().z].transform.Find("" + wallname).gameObject);
 						} //greater one holds walls
+					}
+				}
+			}
+		}
+		
+		// test moving before generation??
+		for (int x = 0; x < sizeX; x++)
+		{
+			for (int z = 0; z < sizeZ; z++)
+			{
+				for (int tri = 0; tri < 4; tri++)
+				{
+					if (reserved.Contains(cellclusters[x, z].transform.Find("" + Mathf.Pow(2, tri)).GetComponent<TriangleCellFloor>()))
+					{
+						Destroy(cellclusters[x, z].transform.Find("" + Mathf.Pow(2, tri)).GetComponent<TriangleCellFloor>().gameObject);
 					}
 				}
 			}

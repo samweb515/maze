@@ -352,6 +352,8 @@
 "Assets/CellCluster.cs"
 "Assets/GameManager.cs"
 "Assets/Maze.cs"
+"Assets/Room1.cs"
+"Assets/SquareWalls.cs"
 "Assets/TriangleCellFloor.cs"
 -langversion:9.0
 

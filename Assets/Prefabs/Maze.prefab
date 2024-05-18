@@ -47,4 +47,6 @@ MonoBehaviour:
   sizeX: 0
   sizeZ: 0
   cellPrefab: {fileID: -6095059717913220710, guid: a08a6741b91ca81449519007f112c1a0, type: 3}
+  SquareWall: {fileID: 2358486439682399447, guid: caa204cc3a173ef4492fcef2090946d2, type: 3}
+  room: {fileID: 1456188367166806230, guid: 31d3bac8e5883844ab46c5c85dcee862, type: 3}
   generationStepDelay: 0
